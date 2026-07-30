@@ -1,53 +1,29 @@
-core_value: >
-  Prove, on every push, that big-release and bigbase-deploy still work together —
-  a minimal PHP site that exists to be a regression signal, not a product — and
-  specifically prove app_type: php end-to-end since it has never been exercised
-  through the real CI/deploy pipeline before.
-
-summary: >
-  bigbase-canary-php is the PHP member of a four-language canary fleet
-  (go/python/node/php). Unlike the other three, no upstream CI template exists
-  for PHP in danielvm-git/.github — this repo authors test-build-release.yml and
-  deploy.yml from scratch, mirroring the Python pair's job shape with
-  Composer/PHPUnit in place of uv/pytest. Once proven green, those templates get
-  promoted into .github's shared workflow-templates as the fifth official pair.
-  bigbase's deploy engine already fully implements app_type: php
-  (components/deploy/deploy.go, engine.go) — what's missing is purely the CI
-  template and the action/contract doc's mention of it, both fixed here and in
-  the shared .github repo.
+core_value: "Adapt bigbase-canary-php to consume centralized reusable CI/CD workflows from danielvm-git/.github with big-release enabled."
+summary: |
+  Following Discussion #32 (v4.1.0 update), danielvm-git/.github now supports reusable workflow
+  invocation with configurable parameters, including release_tool ("big-release" vs "semantic-release").
+  This initiative updates bigbase-canary-php's CI/CD pipeline configuration to invoke the centralized
+  reusable workflows from danielvm-git/.github instead of using standalone local workflows.
 
 in_scope:
-  - item: Minimal PHP app (index.php, no framework) reading VERSION into an HTML footer
-    maps_to: e01s01
-  - item: .big-release.yml (tagFormat v${version}, plugins changelog/git/github)
-    maps_to: e01s01
-  - item: test-build-release-php.yml + deploy-php.yml authored from scratch, mirroring Python's job shape
-    maps_to: e01s01
-  - item: bigbase site provisioning (site "php" -> php.bigbase.click) and GitHub secrets
-    maps_to: e01s01
-  - item: Promoting the proven-green templates into danielvm-git/.github (tracked as a separate shared-resource task)
-    maps_to: e01s01
+  - "Replace local standalone workflow definitions with reusable workflow calls to danielvm-git/.github"
+  - "Configure release_tool: 'big-release' in CI pipeline inputs"
+  - "Configure site_url: 'https://php.bigbase.click' in CI pipeline inputs"
+  - "Verify preflight, lint, test, and deploy-meta boundary artifact compatibility"
 
 out_of_scope:
-  - item: Any real product feature (auth, persistence, multi-page routing)
-    reason: not valuable — this repo's value is being small and stable
-  - item: Non-PHP implementations
-    reason: covered by sibling repos bigbase-canary-go/python/node
-  - item: Fixing a deploy-host PHP/Composer tooling gap, if hit
-    reason: that's a bigbase-repo bug investigation, tracked separately, not in scope for this app repo
+  - "Modifying application code (index.php, tests/)"
+  - "Modifying centralized workflows inside danielvm-git/.github"
 
 constraints:
-  tech: "PHP 8.3+, Composer, GitHub Actions (ubuntu-22.04), bigbase.click as the only deploy target"
-  time: "single-session build"
-  resource: "solo developer (danielvm-git), solo-git integrate profile"
+  - "Must preserve big-release execution for canary regression testing"
+  - "No direct commits to main; use kickoff-branch workflow for implementation"
 
 success_criteria:
-  - A push to main produces a green Test Build Release run and a green Deploy run
-  - "curl https://php.bigbase.click returns the current VERSION file's contents in the footer (body content verified, not just HTTP status)"
-  - A second commit produces a second tag via big-release and a fresh deploy
-  - The proven CI templates are promoted into danielvm-git/.github
+  - "CI/CD workflow file in .github/workflows/ invokes danielvm-git/.github/.github/workflows/test-build-release-php.yml@main"
+  - "Input release_tool is explicitly set to 'big-release'"
+  - "Input site_url is explicitly set to 'https://php.bigbase.click'"
+  - "Preflight lint and test suites exit 0"
 
 references:
-  - path: ../../../../.claude/plans/plan-to-generate-this-cryptic-perlis.md
-    note: approved cross-repo plan, now updated with Go/Python/Node learnings this story applies
-  - path: https://github.com/danielvm-git/big-release
+  - "https://github.com/danielvm-git/.github/discussions/32"

@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 session:
-  active_epic: e01
-  active_story: e01s01
+  active_epic: e02
+  active_story: e02s01
 git:
   branch: main
 handoff:

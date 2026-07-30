@@ -1,0 +1,9 @@
+epic:
+  id: e02
+  title: Centralized CI/CD adoption
+  bcps: 3
+  stories:
+    - id: e02s01
+      title: "Migrate workflows to reusable centralized templates with big-release"
+      bcps: 3
+      delta: MODIFIED
