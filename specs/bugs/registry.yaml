@@ -1,0 +1,9 @@
+bugs:
+  - bug_id: BUG-2026-07-30T090000
+    date: "2026-07-30"
+    severity: high
+    priority: P1
+    scope: ci
+    summary: "VERSION file will go stale on the next release — nothing updates it after tag cut"
+    file: "specs/bugs/BUG-2026-07-30T090000-stale-version-file.md"
+    status: open
