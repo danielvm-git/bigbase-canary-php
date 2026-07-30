@@ -132,3 +132,14 @@ jobs:
           GIT_AUTHOR_EMAIL: big-release-bot@danielvm-git.github.io
           GIT_COMMITTER_NAME: big-release-bot
           GIT_COMMITTER_EMAIL: big-release-bot@danielvm-git.github.io
+
+      - name: Update VERSION file
+        run: |
+          NEW_VER=$(git describe --tags --abbrev=0 | sed 's/^v//')
+          echo "$NEW_VER" > VERSION
+          git config user.name "big-release-bot"
+          git config user.email "big-release-bot@danielvm-git.github.io"
+          git add VERSION
+          git commit -m "chore(release): update VERSION to $NEW_VER [skip ci]" || echo "No VERSION change"
+          git push origin main
+

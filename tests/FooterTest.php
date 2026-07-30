@@ -24,4 +24,14 @@ final class FooterTest extends TestCase
 
         unlink($versionFile);
     }
+
+    public function testRootVersionFileIsValidSemver(): void
+    {
+        $versionFilePath = __DIR__ . '/../VERSION';
+        $this->assertFileExists($versionFilePath);
+
+        $version = trim((string) file_get_contents($versionFilePath));
+        $this->assertMatchesRegularExpression('/^[0-9]+\.[0-9]+\.[0-9]+$/', $version);
+    }
 }
+

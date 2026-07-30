@@ -1,6 +1,6 @@
 ---
 bug_id: BUG-2026-07-30T090000
-status: open
+status: resolved
 severity: high
 scope: ci
 title: VERSION file goes stale after release tag cut
@@ -54,4 +54,5 @@ Security impact: NONE — no security exploit path identified.
 
 ## Resolution
 
-<!-- filled in by validate-fix -->
+Fixed in `fix-stale-version-file`: Added root `VERSION` semver validation test in `tests/FooterTest.php` and post-release `Update VERSION file` step in `.github/workflows/test-build-release.yml`.
+
