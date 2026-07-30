@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-30
 **Agent:** MiMoCode QA Audit
-**Commit:** 78f29d2 (HEAD, main, tag: v0.2.1)
+**Commit:** 78f29d2 (main, tag: v0.2.1) → fixes on `fix-qa-findings` branch (3d11339, b94e1ba, b98bb9a)
 
 ---
 
@@ -22,7 +22,7 @@
 |--------|------|-----------|
 | `.github/workflows/` | P1 | CI/CD pipeline — 7 combined commits, 2 failed attempts at centralized migration, directly gates deploys |
 | `src/Footer.php` | P1 | Sole application logic, public API boundary (`App\Footer::render`), read by every request |
-| `tests/FooterTest.php` | P2 | Test coverage for the only functional code; currently 2 tests, 4 assertions |
+| `tests/FooterTest.php` | P2 | Test coverage for the only functional code; now 8 tests, 14 assertions (after fix) |
 | `index.php` | P2 | Entry point, reads VERSION at runtime |
 | `scripts/` | P2 | Prefflight + land-branch tooling, gates all commits |
 | `specs/` | P3 | Planning/tracking artifacts, no runtime impact |
@@ -41,7 +41,7 @@ $ composer lint && composer test
 No syntax errors detected in index.php
 No syntax errors detected in src/Footer.php
 PHPUnit 11.5.56
-OK (2 tests, 4 assertions)
+OK (8 tests, 14 assertions)
 ```
 
 **Result: GREEN**
@@ -95,63 +95,40 @@ $ curl -s -o /dev/null -w '%{http_code}' https://php.bigbase.click
 
 **Severity:** Medium
 **Scope:** CI/CD (deploy.yml)
-**File:** `.github/workflows/deploy.yml:63-77`
+**File:** `.github/workflows/deploy.yml:63-83`
+**Status:** RESOLVED (commit b94e1ba)
 
-The deploy workflow's health check step checks only HTTP status codes (200/301/302). It does **not** verify the response body contains the expected version footer. CONVENTIONS.md explicitly states: *"Verify by content, not just HTTP status."* The documented bigbase port-allocator bug (BUG-2026-07-25) could make a failed deployment's proxy silently serve a different site's content with HTTP 200.
+The deploy workflow's health check step checked only HTTP status codes (200/301/302). It did **not** verify the response body contains the expected version footer. CONVENTIONS.md explicitly states: *"Verify by content, not just HTTP status."* The documented bigbase port-allocator bug (BUG-2026-07-25) could make a failed deployment's proxy silently serve a different site's content with HTTP 200.
 
-**Current code:**
-```bash
-STATUS=$(curl -s -o /dev/null -w '%{http_code}' "${{ env.SITE_URL }}" || echo "000")
-if [ "$STATUS" = "200" ] || [ "$STATUS" = "301" ] || [ "$STATUS" = "302" ]; then
-  echo "✅ Site LIVE (HTTP $STATUS)"
-```
-
-**Recommended fix:** Add content verification after status check:
-```bash
-BODY=$(curl -s "${{ env.SITE_URL }}")
-if echo "$BODY" | grep -q "bigbase canary (PHP)"; then
-  echo "✅ Site LIVE — content verified"
-else
-  echo "::error::Site returned 200 but content mismatch"
-  exit 1
-fi
-```
-
-**Cross-reference:** No open GitHub issue. This is a new finding.
+**Fix applied:** Health check now fetches the response body and verifies it contains `bigbase canary (PHP)` before declaring success. Mismatch triggers `::error::` and exits 1.
 
 ### Finding 2: Footer::render silently produces empty version on missing file
 
 **Severity:** Low
 **Scope:** Application logic
-**File:** `src/Footer.php:13`
+**File:** `src/Footer.php:13-21`
+**Status:** RESOLVED (commit 3d11339)
 
-`file_get_contents()` returns `false` on failure (missing file, permissions). The `(string)` cast turns this into an empty string, so the footer renders as `<footer>v</footer>` — silent failure with no error indication. For a canary, a visible crash is preferable to a silently wrong response.
+`file_get_contents()` returned `false` on failure (missing file, permissions). The `(string)` cast turned this into an empty string, so the footer rendered as `<footer>v</footer>` — silent failure with no error indication.
 
-**Current code:**
-```php
-$version = trim((string) file_get_contents($versionFilePath));
-```
-
-**Impact:** Low — `VERSION` is committed to the repo and the entry point passes `__DIR__ . '/VERSION'` which is a controlled path. But if the file were accidentally deleted or the path changed, the site would silently serve a broken footer instead of failing loudly.
+**Fix applied:** `Footer::render` now checks `is_readable()` before reading and validates the trimmed content is non-empty. Throws `\RuntimeException` with descriptive message on missing/unreadable or empty VERSION file. The `App\Footer::render(string $versionFilePath): string` signature is preserved — `\RuntimeException` is a behavioral change, not an API change.
 
 ### Finding 3: Test suite has no negative/edge-case coverage
 
 **Severity:** Low
 **Scope:** Tests
 **File:** `tests/FooterTest.php`
+**Status:** RESOLVED (commit 3d11339)
 
-The test suite (2 tests, 4 assertions) covers:
-- `testRenderContainsVersion` — renders a version into HTML (synthetic temp file)
-- `testRootVersionFileIsValidSemver` — validates VERSION file format
+The original test suite (2 tests, 4 assertions) had no negative/edge-case coverage.
 
-**Not covered:**
-- Missing VERSION file (would expose Finding 2)
-- Empty VERSION file
-- VERSION file with trailing whitespace/newlines beyond `trim()`
-- VERSION file content matching latest git tag (drift detection)
-- `Footer::render` return value structure (no assertion on exact HTML format)
-
-For a 16-line class this is adequate but not robust. The synthetic temp file in `testRenderContainsVersion` means the test passes even if the real `VERSION` file is corrupt.
+**Fix applied:** Expanded to 8 tests, 14 assertions:
+- `testRenderReturnsExpectedHtmlStructure` — exact HTML format assertion
+- `testRenderTrimsWhitespaceFromVersion` — whitespace handling
+- `testRenderThrowsOnMissingFile` — nonexistent path throws `\RuntimeException`
+- `testRenderThrowsOnEmptyFile` — empty file throws `\RuntimeException`
+- `testRenderThrowsOnWhitespaceOnlyFile` — whitespace-only file throws `\RuntimeException`
+- `testRootVersionFileMatchesLatestGitTag` — VERSION content matches latest git tag (drift detection)
 
 ### Finding 4: e02 epic marked "done" but migration was reverted
 
@@ -202,6 +179,7 @@ This is a tracking inconsistency, not a code defect. The current standalone work
 | Security review | CLEAN |
 | Open confirmed bugs | 0 |
 | New findings | 4 (1 medium, 2 low, 1 info) |
-| Bugs fixed in this audit | 0 (nothing to fix) |
+| Findings resolved | 3 (Findings 1–3 fixed on `fix-qa-findings` branch) |
+| Remaining | 1 (Finding 4: e02 tracking inconsistency — info only) |
 
-**Verdict: PASS** — The repository is healthy. All gates green, no open bugs, live site serving the correct version. Four quality improvements identified (Finding 1 is the most actionable — deploy health check should verify content, not just status).
+**Verdict: PASS** — The repository is healthy. All gates green, no open bugs, live site serving the correct version. Three findings fixed (deploy health check content verification, Footer error handling, robust test suite). One informational finding remains (e02 tracking inconsistency).

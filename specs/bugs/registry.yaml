@@ -16,8 +16,9 @@ bugs:
     scope: ci
     summary: "Deploy health check validates HTTP status only, not response content — contradicts CONVENTIONS.md content-verification mandate"
     file: ".github/workflows/deploy.yml"
-    status: open
+    status: resolved
     finding_source: qa-audit
+    resolved_commit: b94e1ba
     cross_references:
       - "CONVENTIONS.md: Verify by content, not just HTTP status"
       - "BUG-2026-07-25 (bigbase port allocator) — wrong site served with HTTP 200"
@@ -29,8 +30,9 @@ bugs:
     scope: application
     summary: "Footer::render silently produces empty version on missing/unreadable VERSION file instead of failing loudly"
     file: "src/Footer.php"
-    status: open
+    status: resolved
     finding_source: qa-audit
+    resolved_commit: 3d11339
 
   - bug_id: BUG-2026-07-30T140002
     date: "2026-07-30"
@@ -39,8 +41,9 @@ bugs:
     scope: tests
     summary: "Test suite has no negative/edge-case coverage — no test for missing VERSION, empty VERSION, or content-vs-tag drift"
     file: "tests/FooterTest.php"
-    status: open
+    status: resolved
     finding_source: qa-audit
+    resolved_commit: 3d11339
 
   - bug_id: BUG-2026-07-30T140003
     date: "2026-07-30"
