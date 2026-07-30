@@ -1,14 +1,10 @@
 workflow_mode: solo-git
-active_flow: fix_bug
-bug_cycle:
-  current_step: 5
-  completed_steps: [1, 2, 3, 4]
 session:
   active_epic: e02
   active_story: e02s01
 git:
   branch: main
 handoff:
-  next_skill: release-branch
+  next_skill: survey-context
 metrics:
   story_start: null
