@@ -65,10 +65,16 @@ jobs:
           ATTEMPTS=8
           INTERVAL=10
           for i in $(seq 1 "$ATTEMPTS"); do
+            BODY=$(curl -s "${{ env.SITE_URL }}" 2>/dev/null || true)
             STATUS=$(curl -s -o /dev/null -w '%{http_code}' "${{ env.SITE_URL }}" || echo "000")
             if [ "$STATUS" = "200" ] || [ "$STATUS" = "301" ] || [ "$STATUS" = "302" ]; then
-              echo "✅ Site LIVE (HTTP $STATUS)"
-              exit 0
+              if echo "$BODY" | grep -q "bigbase canary (PHP)"; then
+                echo "✅ Site LIVE (HTTP $STATUS) — content verified"
+                exit 0
+              else
+                echo "::error::Site returned HTTP $STATUS but content mismatch — possible wrong-site deployment"
+                exit 1
+              fi
             fi
             echo "Attempt $i/$ATTEMPTS: HTTP $STATUS, waiting ${INTERVAL}s..."
             sleep "$INTERVAL"
