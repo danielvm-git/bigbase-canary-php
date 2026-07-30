@@ -1,13 +1,13 @@
 story_id: e02s01
 title: Migrate workflows to reusable centralized templates with big-release
-status: failing
+status: passing
 bcps: 3
 tasks:
   - id: 1
     description: "Replace local standalone workflow with centralized reusable workflow call"
     verify: "test -f .github/workflows/ci-cd.yml || test -f .github/workflows/test-build-release.yml"
     risk: P1
-    status: failing
+    status: passing
     allure:
       severity: high
       categories:
@@ -16,7 +16,7 @@ tasks:
     description: "Verify workflow inputs: release_tool='big-release' and site_url='https://php.bigbase.click'"
     verify: "grep -q 'release_tool.*big-release' .github/workflows/*.yml && grep -q 'site_url.*https://php.bigbase.click' .github/workflows/*.yml"
     risk: P1
-    status: failing
+    status: passing
     allure:
       severity: high
       categories:
@@ -25,7 +25,7 @@ tasks:
     description: "Run local preflight check to confirm lint and tests exit 0"
     verify: "composer lint && composer test"
     risk: P1
-    status: failing
+    status: passing
     allure:
       severity: high
       categories:
