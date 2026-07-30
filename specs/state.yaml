@@ -5,6 +5,11 @@ session:
 git:
   branch: main
 handoff:
-  next_skill: survey-context
+  next_skill: verify-work
+  qa_report: specs/QA_REPORT_LATEST.md
+  bugs_registry: specs/bugs/registry.yaml
+  qa_status: audit_complete
+  open_findings: 4
+  confirmed_bugs: 0
 metrics:
   story_start: null

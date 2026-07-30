@@ -7,3 +7,47 @@ bugs:
     summary: "VERSION file will go stale on the next release — nothing updates it after tag cut"
     file: "specs/bugs/BUG-2026-07-30T090000-stale-version-file.md"
     status: resolved
+    github_issue: 1
+
+  - bug_id: BUG-2026-07-30T140000
+    date: "2026-07-30"
+    severity: medium
+    priority: P2
+    scope: ci
+    summary: "Deploy health check validates HTTP status only, not response content — contradicts CONVENTIONS.md content-verification mandate"
+    file: ".github/workflows/deploy.yml"
+    status: open
+    finding_source: qa-audit
+    cross_references:
+      - "CONVENTIONS.md: Verify by content, not just HTTP status"
+      - "BUG-2026-07-25 (bigbase port allocator) — wrong site served with HTTP 200"
+
+  - bug_id: BUG-2026-07-30T140001
+    date: "2026-07-30"
+    severity: low
+    priority: P3
+    scope: application
+    summary: "Footer::render silently produces empty version on missing/unreadable VERSION file instead of failing loudly"
+    file: "src/Footer.php"
+    status: open
+    finding_source: qa-audit
+
+  - bug_id: BUG-2026-07-30T140002
+    date: "2026-07-30"
+    severity: low
+    priority: P3
+    scope: tests
+    summary: "Test suite has no negative/edge-case coverage — no test for missing VERSION, empty VERSION, or content-vs-tag drift"
+    file: "tests/FooterTest.php"
+    status: open
+    finding_source: qa-audit
+
+  - bug_id: BUG-2026-07-30T140003
+    date: "2026-07-30"
+    severity: info
+    priority: P3
+    scope: tracking
+    summary: "e02 epic marked done in execution-status.yaml but centralized workflow migration was reverted — tracking inconsistency"
+    file: "specs/execution-status.yaml"
+    status: open
+    finding_source: qa-audit
