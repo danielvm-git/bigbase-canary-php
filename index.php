@@ -8,4 +8,5 @@ require __DIR__ . '/vendor/autoload.php';
 
 use App\Footer;
 
-echo Footer::render(__DIR__ . '/VERSION');
+header('Content-Type: text/html; charset=UTF-8');
+echo Footer::renderShowroom(__DIR__ . '/VERSION', __DIR__ . '/showroom.html');

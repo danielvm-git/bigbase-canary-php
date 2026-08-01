@@ -88,6 +88,69 @@ final class FooterTest extends TestCase
         }
     }
 
+    public function testRenderShowroomContainsVersion(): void
+    {
+        $versionFile = tempnam(sys_get_temp_dir(), "version");
+        file_put_contents($versionFile, "1.4.0\n");
+
+        $htmlFile = tempnam(sys_get_temp_dir(), "showroom");
+        file_put_contents($htmlFile, "<html><body>v{{VERSION}}<span>{{VERSION}}</span></body></html>");
+
+        $html = Footer::renderShowroom($versionFile, $htmlFile);
+
+        $this->assertStringContainsString("1.4.0", $html);
+
+        unlink($versionFile);
+        unlink($htmlFile);
+    }
+
+    public function testRenderShowroomReplacesAllPlaceholders(): void
+    {
+        $versionFile = tempnam(sys_get_temp_dir(), "version");
+        file_put_contents($versionFile, "2.0.0");
+
+        $htmlFile = tempnam(sys_get_temp_dir(), "showroom");
+        file_put_contents($htmlFile, "<h1>v{{VERSION}}</h1><div>v{{VERSION}}</div>");
+
+        $html = Footer::renderShowroom($versionFile, $htmlFile);
+
+        $this->assertStringNotContainsString("{{VERSION}}", $html);
+        $this->assertStringContainsString("v2.0.0", $html);
+
+        unlink($versionFile);
+        unlink($htmlFile);
+    }
+
+    public function testRenderShowroomThrowsOnMissingVersionFile(): void
+    {
+        $htmlFile = tempnam(sys_get_temp_dir(), "showroom");
+        file_put_contents($htmlFile, "<html></html>");
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('VERSION file not found');
+
+        try {
+            Footer::renderShowroom('/nonexistent/path/VERSION', $htmlFile);
+        } finally {
+            unlink($htmlFile);
+        }
+    }
+
+    public function testRenderShowroomThrowsOnMissingHtmlFile(): void
+    {
+        $versionFile = tempnam(sys_get_temp_dir(), "version");
+        file_put_contents($versionFile, "1.0.0");
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Showroom HTML file not found');
+
+        try {
+            Footer::renderShowroom($versionFile, '/nonexistent/path/showroom.html');
+        } finally {
+            unlink($versionFile);
+        }
+    }
+
     public function testRootVersionFileIsValidSemver(): void
     {
         $versionFilePath = __DIR__ . '/../VERSION';
