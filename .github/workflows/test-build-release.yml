@@ -16,7 +16,7 @@ concurrency:
 
 env:
   APP_TYPE: php
-  PHP_VERSION: '8.3'
+  PHP_VERSION: '8.4'
   SITE_URL: "https://php.bigbase.click"
 
 jobs:
